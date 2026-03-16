@@ -50,21 +50,34 @@ def load_stock_data(ticker):
     return df
 
 def load_dividends(ticker):
-    """加载分红数据"""
+    """加载分红数据，确保 index 是 timezone-naive DatetimeIndex"""
     safe_name = ticker.replace(".", "_")
     filepath = os.path.join(DATA_DIR, f"{safe_name}_dividends.csv")
     if not os.path.exists(filepath):
         return pd.Series(dtype=float)
     df = pd.read_csv(filepath, index_col=0, parse_dates=True)
     if isinstance(df, pd.DataFrame) and len(df.columns) > 0:
-        return df.iloc[:, 0]
-    return pd.Series(dtype=float)
+        s = df.iloc[:, 0]
+    elif isinstance(df, pd.Series):
+        s = df
+    else:
+        return pd.Series(dtype=float)
+    # 确保 index 是 DatetimeIndex 且 timezone-naive
+    if not isinstance(s.index, pd.DatetimeIndex):
+        s.index = pd.to_datetime(s.index, utc=True)
+    if s.index.tz is not None:
+        s.index = s.index.tz_localize(None)
+    return s
 
 def run_backtest(initial_investment=1000):
     """
-    回测：每只股票在数据起始日投入资金，持有到最后一天
+    回测：每只股票从 2010-01-05 起投入资金，持有到最后一天
     包含分红再投资 (DRIP)
+    若股票在该日期前未上市，则用最早可用日期
     """
+    # 统一起点：META 上市日 2012-05-18
+    TARGET_START = pd.Timestamp("2012-05-18")
+    
     results = []
     for ticker, info in STOCKS.items():
         df = load_stock_data(ticker)
@@ -85,10 +98,16 @@ def run_backtest(initial_investment=1000):
         if len(prices) < 2:
             continue
         
-        start_price = prices.iloc[0]
-        end_price = prices.iloc[-1]
-        start_date = prices.index[0]
-        end_date = prices.index[-1]
+        # 统一起点：2012-05-18 或之后最近的交易日
+        valid = prices[prices.index >= TARGET_START]
+        if len(valid) < 2:
+            continue
+        
+        start_price = valid.iloc[0]
+        end_price = valid.iloc[-1]
+        start_date = valid.index[0]
+        end_date = valid.index[-1]
+        prices = valid
         
         # --- 不含分红的简单回报 ---
         shares_no_drip = initial_investment / start_price
@@ -100,10 +119,6 @@ def run_backtest(initial_investment=1000):
         total_dividends_received = 0.0
         
         if len(dividends) > 0:
-            # 确保 timezone-naive
-            if dividends.index.tz is not None:
-                dividends.index = dividends.index.tz_localize(None)
-            
             for div_date, div_amount in dividends.items():
                 if div_date < start_date or div_date > end_date:
                     continue
@@ -165,6 +180,7 @@ def run_backtest(initial_investment=1000):
 
 def generate_portfolio_chart(results):
     """生成组合总览图（含 DRIP）"""
+    TARGET_START = pd.Timestamp("2012-05-18")
     fig = go.Figure()
     
     for r in results:
@@ -180,15 +196,18 @@ def generate_portfolio_chart(results):
                     break
         
         prices = df[close_col].dropna()
+        # 统一起点
+        valid = prices[prices.index >= TARGET_START]
+        if len(valid) >= 2:
+            prices = valid
+        
         dividends = load_dividends(r["ticker"])
         
         # 模拟 DRIP 逐日持仓价值
         start_price = prices.iloc[0]
         shares = 10000.0 / start_price
         
-        # 确保 timezone-naive
-        if len(dividends) > 0 and dividends.index.tz is not None:
-            dividends.index = dividends.index.tz_localize(None)
+        # load_dividends 已确保 timezone-naive
         
         div_dict = {}
         if len(dividends) > 0:

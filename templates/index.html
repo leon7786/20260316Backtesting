@@ -137,7 +137,7 @@
 <body>
     <div class="header">
         <h1>📊 Global Top 20 — Stock Backtesting Dashboard</h1>
-        <div class="subtitle">回测区间: 2010 → 2025 | 每只股票初始投入 $10,000 | 简单买入持有策略</div>
+        <div class="subtitle">回测起点: 2012-05-18 (META 上市日) → 2025 | 每只股票初始投入 $10,000 | 买入持有 + 分红再投资 (DRIP)</div>
     </div>
 
     <div class="summary-cards">
@@ -237,6 +237,44 @@
         
         Plotly.newPlot('portfolioChart', portfolioData.data, portfolioData.layout, {responsive: true});
         Plotly.newPlot('barChart', barData.data, barData.layout, {responsive: true});
+
+        // 图例点击交互：点击一个 → 隐藏其他只显示它；再点 → 恢复全部
+        (function() {
+            var chart = document.getElementById('portfolioChart');
+            var isolated = false;  // 当前是否处于"只看一个"状态
+            var isolatedIndex = -1;
+
+            chart.on('plotly_legendclick', function(data) {
+                var clickedIndex = data.curveNumber;
+                var totalTraces = data.fullData.length;
+
+                if (isolated && isolatedIndex === clickedIndex) {
+                    // 再次点击同一个 → 恢复全部
+                    var update = {visible: []};
+                    for (var i = 0; i < totalTraces; i++) {
+                        update.visible.push(true);
+                    }
+                    Plotly.restyle('portfolioChart', {visible: update.visible.map(function(v, i) { return true; })});
+                    // 用 restyle 数组形式
+                    var vis = [];
+                    for (var i = 0; i < totalTraces; i++) vis.push(true);
+                    Plotly.restyle('portfolioChart', {'visible': vis});
+                    isolated = false;
+                    isolatedIndex = -1;
+                } else {
+                    // 点击某个 → 隐藏其他，只显示它
+                    var vis = [];
+                    for (var i = 0; i < totalTraces; i++) {
+                        vis.push(i === clickedIndex ? true : 'legendonly');
+                    }
+                    Plotly.restyle('portfolioChart', {'visible': vis});
+                    isolated = true;
+                    isolatedIndex = clickedIndex;
+                }
+
+                return false; // 阻止 Plotly 默认图例行为
+            });
+        })();
     </script>
 </body>
 </html>
