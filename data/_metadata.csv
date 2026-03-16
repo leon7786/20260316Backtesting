@@ -1,0 +1,21 @@
+,name,rows,file
+NVDA,NVIDIA,4023,NVDA.csv
+AAPL,Apple,4023,AAPL.csv
+GOOGL,Alphabet,4023,GOOGL.csv
+MSFT,Microsoft,4023,MSFT.csv
+AMZN,Amazon,4023,AMZN.csv
+META,Meta Platforms,3424,META.csv
+TSM,TSMC (台积电),4023,TSM.csv
+AVGO,Broadcom,4023,AVGO.csv
+TSLA,Tesla,3901,TSLA.csv
+BRK-B,Berkshire Hathaway,4023,BRK-B.csv
+WMT,Walmart,4023,WMT.csv
+LLY,Eli Lilly,4023,LLY.csv
+005930.KS,Samsung Electronics (三星电子),3935,005930_KS.csv
+JPM,JPMorgan Chase,4023,JPM.csv
+0700.HK,Tencent Holdings (腾讯),3941,0700_HK.csv
+XOM,Exxon Mobil,4023,XOM.csv
+V,Visa,4023,V.csv
+JNJ,Johnson & Johnson,4023,JNJ.csv
+ASML,ASML Holding,4023,ASML.csv
+MU,Micron Technology,4023,MU.csv
