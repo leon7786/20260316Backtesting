@@ -255,33 +255,37 @@
         Plotly.newPlot('portfolioChart', portfolioData.data, portfolioData.layout, {responsive: true});
         Plotly.newPlot('barChart', barData.data, barData.layout, {responsive: true});
 
-        // ========== 图例点击：单击隐藏其他（Y轴不变），再点恢复全部 ==========
+        // ========== 图例点击：透明隐藏/显示（无重渲染，Y轴不变） ==========
         (function() {
             var chart = document.getElementById('portfolioChart');
             var isolated = false;
             var isolatedIndex = -1;
+            var total = portfolioData.data.length;
 
             chart.on('plotly_legendclick', function(data) {
                 var clicked = data.curveNumber;
-                var total = data.fullData.length;
+                var opacities = new Array(total);
+                var widths = new Array(total);
                 var i;
 
                 if (isolated && isolatedIndex === clicked) {
                     // 恢复全部
-                    for (i = 0; i < total; i++) {
-                        Plotly.restyle('portfolioChart', {'visible': true}, [i]);
-                    }
+                    for (i = 0; i < total; i++) { opacities[i] = 0.7; widths[i] = 1.2; }
                     isolated = false;
                     isolatedIndex = -1;
                 } else {
-                    // 只显示点击的那条
+                    // 只显示点击的，其他透明
                     for (i = 0; i < total; i++) {
-                        Plotly.restyle('portfolioChart', {'visible': (i === clicked) ? true : 'legendonly'}, [i]);
+                        opacities[i] = (i === clicked) ? 1.0 : 0.0;
+                        widths[i] = (i === clicked) ? 2.5 : 1.2;
                     }
                     isolated = true;
                     isolatedIndex = clicked;
                 }
-                return false; // 阻止 Plotly 默认行为
+                var indices = [];
+                for (i = 0; i < total; i++) indices.push(i);
+                Plotly.restyle('portfolioChart', {'opacity': opacities, 'line.width': widths}, indices);
+                return false;
             });
         })();
 

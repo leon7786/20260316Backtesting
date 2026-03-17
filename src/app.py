@@ -305,14 +305,18 @@ def generate_portfolio_chart(results):
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
 def generate_bar_chart(results):
-    """生成最终价值柱状图（含 DRIP vs 不含）"""
+    """生成最终价值柱状图（对数 X 轴，含 DRIP vs 不含）"""
     names = [f'{r["flag"]} {r["name"]}' for r in results]
     values = [r["final_value"] for r in results]
     values_no_drip = [r["final_no_drip"] for r in results]
     returns = [r["total_return_pct"] for r in results]
     
-    # DRIP 柱
+    # 计算柱状图高度：36只股票需要更多空间
+    bar_height = max(750, len(results) * 28)
+    
     fig = go.Figure()
+    
+    # DRIP 柱
     fig.add_trace(go.Bar(
         x=values,
         y=names,
@@ -331,8 +335,7 @@ def generate_bar_chart(results):
         orientation='h',
         marker_color='#4a4a8a',
         name='不含分红',
-        text=[f'${v:,.0f}' for v in values_no_drip],
-        textposition='inside',
+        textposition='none',
         hovertemplate='%{y}<br>不含分红: $%{x:,.0f}<extra></extra>'
     ))
     
@@ -341,13 +344,14 @@ def generate_bar_chart(results):
                   annotation_text="$10,000 本金", annotation_position="top")
     
     fig.update_layout(
-        title="💰 $10,000 投入 → 最终价值排行（含分红再投资 vs 不含）",
+        title="💰 $10,000 投入 → 最终价值排行（对数坐标，含 DRIP vs 不含）",
         xaxis_title="最终价值 ($)",
+        xaxis_type="log",
         template="plotly_dark",
-        height=750,
+        height=bar_height,
         barmode='overlay',
         yaxis=dict(autorange="reversed"),
-        margin=dict(l=200),
+        margin=dict(l=200, r=120),
         legend=dict(x=0.7, y=0.05)
     )
     
