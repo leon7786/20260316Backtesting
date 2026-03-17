@@ -340,14 +340,14 @@ def generate_portfolio_chart(results):
 
 def generate_bar_chart(results):
     """生成最终价值柱状图（对数 X 轴，含 DRIP vs 不含）"""
-    # Y 轴标签：国旗 + 英文名 + 中文名 + CAGR
+    # Y 轴标签：国旗 英文名 中文名 | CAGR
     names = []
     for r in results:
         cn = r.get("name_cn", "")
-        label = f'{r["flag"]} {r["name"]}'
         if cn and cn != r["name"]:
-            label += f' ({cn})'
-        label += f'  CAGR {r["cagr_pct"]:+.1f}%'
+            label = f'{r["flag"]} {r["name"]} {cn}  |  CAGR {r["cagr_pct"]:+.1f}%'
+        else:
+            label = f'{r["flag"]} {r["name"]}  |  CAGR {r["cagr_pct"]:+.1f}%'
         names.append(label)
     
     values = [r["final_value"] for r in results]
@@ -398,9 +398,9 @@ def generate_bar_chart(results):
         barmode='overlay',
         yaxis=dict(
             autorange="reversed",
-            tickfont=dict(size=10),
+            tickfont=dict(size=11),
         ),
-        margin=dict(l=320, r=140),
+        margin=dict(l=340, r=140),
         legend=dict(x=0.7, y=0.05)
     )
     
