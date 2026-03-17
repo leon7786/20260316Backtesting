@@ -28,12 +28,8 @@
             font-size: 14px;
         }
         .summary-bar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
             background: #0a0a1a;
             border-bottom: 1px solid #2a2a5a;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
         }
         .summary-cards {
             display: grid;
@@ -90,8 +86,6 @@
             width: 100%;
             border-collapse: collapse;
             background: #12122a;
-            border-radius: 12px;
-            overflow: hidden;
             border: 1px solid #2a2a5a;
         }
         thead th {
@@ -140,11 +134,15 @@
             font-size: 12px;
             border-top: 1px solid #1a1a2e;
         }
+        .table-section {
+            position: relative;
+        }
         .table-section table thead th {
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 20;
             background: #1a1a3e;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         .sortable {
             cursor: pointer;
@@ -323,12 +321,12 @@
 
             function parseNum(text) {
                 var cleaned = text.replace(/[$,%+,\s\n]/g, '');
-                // 「—」或空值排最后（用极大值）
+                // 「—」或空值：永远排最底部（无论升序降序）
                 if (cleaned === '—' || cleaned === '' || cleaned === '-') {
-                    return Infinity;
+                    return null;  // 特殊标记
                 }
                 var num = parseFloat(cleaned);
-                return isNaN(num) ? Infinity : num;
+                return isNaN(num) ? null : num;
             }
 
             headers.forEach(function(header) {
@@ -364,7 +362,13 @@
                         var bText = b.cells[colIdx].textContent.trim();
                         var result;
                         if (type === 'num') {
-                            result = parseNum(aText) - parseNum(bText);
+                            var aVal = parseNum(aText);
+                            var bVal = parseNum(bText);
+                            // null (—) 永远排底部，无论升序降序
+                            if (aVal === null && bVal === null) return 0;
+                            if (aVal === null) return 1;
+                            if (bVal === null) return -1;
+                            result = aVal - bVal;
                         } else {
                             result = aText.localeCompare(bText);
                         }
