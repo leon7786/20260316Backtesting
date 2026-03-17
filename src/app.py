@@ -313,7 +313,10 @@ def generate_portfolio_chart(results):
         log_min, log_max = 3, 7
     
     fig.update_layout(
-        title="📈 各 $10,000 投资增长曲线 · 含分红再投资 (2012.05 - 2025.12)",
+        title=dict(
+            text="📈 各 $10,000 投资增长曲线 · 含分红再投资<br><sup style='color:#888'>回测区间: 2012-05-18 → 2025-12-01 | 每只股票初始投入 $10,000 | 买入持有 + 分红再投资 (DRIP)</sup>",
+            font=dict(size=16),
+        ),
         xaxis_title="日期",
         yaxis_title="投资价值 ($)",
         yaxis_type="log",
@@ -384,7 +387,10 @@ def generate_bar_chart(results):
                   annotation_text="$10,000 本金", annotation_position="top")
     
     fig.update_layout(
-        title="💰 $10,000 投入 → 最终价值排行（对数坐标，含 DRIP vs 不含）",
+        title=dict(
+            text="💰 $10,000 投入 → 最终价值排行（对数坐标，含 DRIP vs 不含）<br><sup style='color:#888'>回测区间: 2012-05-18 → 2025-12-01 | 每只股票初始投入 $10,000 | 买入持有 + 分红再投资 (DRIP)</sup>",
+            font=dict(size=16),
+        ),
         xaxis_title="最终价值 ($)",
         xaxis_type="log",
         template="plotly_dark",
