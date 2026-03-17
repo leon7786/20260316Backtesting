@@ -291,14 +291,19 @@ def generate_portfolio_chart(results):
                 shares += div_income / price
             portfolio_values.append(shares * price)
         
+        cn = r.get("name_cn", "")
+        legend_name = r["name"]
+        if cn and cn != r["name"]:
+            legend_name = f'{r["name"]} {cn}'
+        
         fig.add_trace(go.Scatter(
             x=prices.index,
             y=portfolio_values,
             mode='lines',
-            name=f'{r["flag"]} {r["name"]}',
+            name=legend_name,
             line=dict(width=1.2),
             opacity=0.7,
-            hovertemplate=f'{r["name"]}<br>日期: %{{x}}<br>价值: $%{{y:,.0f}}<extra></extra>'
+            hovertemplate=f'{legend_name}<br>日期: %{{x}}<br>价值: $%{{y:,.0f}}<extra></extra>'
         ))
         all_values.extend(portfolio_values)
     
@@ -340,14 +345,20 @@ def generate_portfolio_chart(results):
 
 def generate_bar_chart(results):
     """生成最终价值柱状图（对数 X 轴，含 DRIP vs 不含）"""
-    # Y 轴标签：国旗 英文名 中文名 | CAGR
+    # Y 轴标签：国家缩写 英文名 中文名 | CAGR
+    # Plotly SVG 不支持 emoji，用文字国家代码
+    FLAG_TO_COUNTRY = {
+        "🇺🇸": "US", "🇨🇳": "CN", "🇹🇼": "TW", "🇰🇷": "KR",
+        "🇳🇱": "NL", "🇨🇭": "CH", "🇦🇺": "AU",
+    }
     names = []
     for r in results:
         cn = r.get("name_cn", "")
+        country = FLAG_TO_COUNTRY.get(r["flag"], "")
         if cn and cn != r["name"]:
-            label = f'{r["flag"]} {r["name"]} {cn}  |  CAGR {r["cagr_pct"]:+.1f}%'
+            label = f'[{country}] {r["name"]} {cn}  |  CAGR {r["cagr_pct"]:+.1f}%'
         else:
-            label = f'{r["flag"]} {r["name"]}  |  CAGR {r["cagr_pct"]:+.1f}%'
+            label = f'[{country}] {r["name"]}  |  CAGR {r["cagr_pct"]:+.1f}%'
         names.append(label)
     
     values = [r["final_value"] for r in results]

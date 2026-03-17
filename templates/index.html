@@ -27,28 +27,36 @@
             color: #888;
             font-size: 14px;
         }
+        .summary-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #0a0a1a;
+            border-bottom: 1px solid #2a2a5a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
         .summary-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px;
-            padding: 24px 40px;
+            padding: 16px 40px;
         }
         .card {
             background: #12122a;
             border: 1px solid #2a2a5a;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 12px 16px;
             text-align: center;
         }
         .card .label {
-            font-size: 12px;
+            font-size: 10px;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         .card .value {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 700;
         }
         .card .value.green { color: #00ff88; }
@@ -161,6 +169,7 @@
         <div class="subtitle">回测区间: 2012-05-18 → 2025-12-01 | 每只股票初始投入 $10,000 | 买入持有 + 分红再投资 (DRIP)</div>
     </div>
 
+    <div class="summary-bar">
     <div class="summary-cards">
         <div class="card">
             <div class="label">持仓数量</div>
@@ -187,6 +196,7 @@
             <div class="value {{ 'red' if worst and worst.total_return_pct < 0 else 'green' }}">{{ worst.name if worst else 'N/A' }}</div>
             <div class="detail">${{ "{:,.0f}".format(worst.final_value) if worst else 0 }} ({{ "{:+,.1f}".format(worst.total_return_pct) if worst else 0 }}%)</div>
         </div>
+    </div>
     </div>
 
     <div class="charts-section">
