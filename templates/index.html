@@ -132,6 +132,12 @@
             font-size: 12px;
             border-top: 1px solid #1a1a2e;
         }
+        .table-section table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #1a1a3e;
+        }
         .sortable {
             cursor: pointer;
             user-select: none;
@@ -199,17 +205,21 @@
                 <tr>
                     <th class="sortable" data-col="0" data-type="num"># <span class="sort-icon">⇅</span></th>
                     <th>股票</th>
-                    <th class="sortable" data-col="2" data-type="num">2012 市值排名 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="3" data-type="str">起始日期 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="4" data-type="num">买入价 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="5" data-type="num">最新价 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="6" data-type="num">投入 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="7" data-type="num">最终价值<br><small>(含DRIP)</small> <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="8" data-type="num">不含分红 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="9" data-type="num">分红增益 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="10" data-type="num">总回报率 <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="11" data-type="num">年化 CAGR <span class="sort-icon">⇅</span></th>
-                    <th class="sortable" data-col="12" data-type="num">最大回撤 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="2" data-type="num">2010排名 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="3" data-type="num">2012排名 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="4" data-type="num">2015排名 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="5" data-type="num">2020排名 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="6" data-type="num">2025排名 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="7" data-type="str">起始日期 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="8" data-type="num">买入价 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="9" data-type="num">最新价 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="10" data-type="num">投入 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="11" data-type="num">最终价值<br><small>(含DRIP)</small> <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="12" data-type="num">不含分红 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="13" data-type="num">分红增益 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="14" data-type="num">总回报率 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="15" data-type="num">年化 CAGR <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="16" data-type="num">最大回撤 <span class="sort-icon">⇅</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -220,7 +230,11 @@
                         <span class="stock-name">{{ r.flag }} {{ r.name }}</span><br>
                         <span class="ticker">{{ r.ticker }}{% if r.name_cn and r.name_cn != r.name %} · {{ r.name_cn }}{% endif %}</span>
                     </td>
+                    <td style="text-align:center">{{ r.rank_2010 if r.rank_2010 else '—' }}</td>
                     <td style="text-align:center">{{ r.rank_2012 if r.rank_2012 else '—' }}</td>
+                    <td style="text-align:center">{{ r.rank_2015 if r.rank_2015 else '—' }}</td>
+                    <td style="text-align:center">{{ r.rank_2020 if r.rank_2020 else '—' }}</td>
+                    <td style="text-align:center">{{ r.rank_2025 if r.rank_2025 else '—' }}</td>
                     <td>{{ r.start_date }}</td>
                     <td>${{ "{:,.2f}".format(r.start_price) }}</td>
                     <td>${{ "{:,.2f}".format(r.end_price) }}</td>

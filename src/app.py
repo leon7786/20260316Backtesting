@@ -58,18 +58,43 @@ STOCKS = {
     "NVS": {"name": "Novartis", "name_cn": "诺华", "flag": "🇨🇭"},
 }
 
-# 2012-05-18 附近的市值排名（亿美元，来源：历史数据）
-MARKET_CAP_2012 = {
-    "AAPL": 1, "XOM": 2, "0857.HK": 3, "MSFT": 4,
-    "1398.HK": 5, "IBM": 6, "WMT": 7, "SHEL": 8,
-    "GE": 9, "0941.HK": 10, "CVX": 11, "GOOGL": 12,
-    "BRK-B": 13, "T": 14, "JNJ": 15, "WFC": 16,
-    "PG": 17, "NVS": 18, "PFE": 19, "BHP": 20,
-    # 以下为 2012 时不在 Top 20 的
-    "NVDA": None, "AMZN": None, "META": None, "TSM": None,
-    "AVGO": None, "TSLA": None, "LLY": None, "005930.KS": None,
-    "JPM": None, "0700.HK": None, "V": None, "ASML": None,
-    "MU": None, "KO": None, "VZ": None, "NESN.SW": None,
+# 各年份全球市值排名（基于当年年初数据，仅覆盖本列表中的股票）
+MARKET_CAP_RANKS = {
+    # 2010 年初 Top 20 全球市值
+    2010: {
+        "XOM": 1, "0857.HK": 2, "MSFT": 3, "1398.HK": 4, "AAPL": 5,
+        "WMT": 6, "BRK-B": 7, "0941.HK": 8, "SHEL": 9, "CVX": 10,
+        "IBM": 11, "GE": 12, "PG": 13, "JNJ": 14, "JPM": 15,
+        "T": 16, "GOOGL": 17, "PFE": 18, "KO": 19, "NVS": 20,
+    },
+    # 2012 年中（META 上市日附近）
+    2012: {
+        "AAPL": 1, "XOM": 2, "0857.HK": 3, "MSFT": 4, "1398.HK": 5,
+        "IBM": 6, "WMT": 7, "SHEL": 8, "GE": 9, "0941.HK": 10,
+        "CVX": 11, "GOOGL": 12, "BRK-B": 13, "T": 14, "JNJ": 15,
+        "WFC": 16, "PG": 17, "NVS": 18, "PFE": 19, "BHP": 20,
+    },
+    # 2015 年初
+    2015: {
+        "AAPL": 1, "XOM": 2, "MSFT": 3, "GOOGL": 4, "BRK-B": 5,
+        "WFC": 6, "JNJ": 7, "WMT": 8, "GE": 9, "NVS": 10,
+        "PG": 11, "JPM": 12, "0941.HK": 13, "SHEL": 14, "CVX": 15,
+        "PFE": 16, "KO": 17, "VZ": 18, "IBM": 19, "V": 20,
+    },
+    # 2020 年初
+    2020: {
+        "AAPL": 1, "MSFT": 2, "GOOGL": 3, "AMZN": 4, "META": 5,
+        "BRK-B": 6, "V": 7, "JPM": 8, "JNJ": 9, "WMT": 10,
+        "0700.HK": 11, "005930.KS": 12, "PG": 13, "TSM": 14, "XOM": 15,
+        "NESN.SW": 16, "NVS": 17, "T": 18, "KO": 19, "VZ": 20,
+    },
+    # 2025 年初
+    2025: {
+        "AAPL": 1, "NVDA": 2, "MSFT": 3, "GOOGL": 4, "AMZN": 5,
+        "META": 6, "TSM": 7, "AVGO": 8, "TSLA": 9, "BRK-B": 10,
+        "WMT": 11, "LLY": 12, "005930.KS": 13, "JPM": 14, "0700.HK": 15,
+        "XOM": 16, "V": 17, "JNJ": 18, "ASML": 19, "MU": 20,
+    },
 }
 
 def load_stock_data(ticker):
@@ -186,14 +211,20 @@ def run_backtest(initial_investment=1000):
         drip_bonus = final_value - final_no_drip
         drip_bonus_pct = (drip_bonus / final_no_drip * 100) if final_no_drip > 0 else 0
         
-        rank_2012 = MARKET_CAP_2012.get(ticker)
+        ranks = {}
+        for year in [2010, 2012, 2015, 2020, 2025]:
+            ranks[year] = MARKET_CAP_RANKS.get(year, {}).get(ticker)
         
         results.append({
             "ticker": ticker,
             "name": info["name"],
             "name_cn": info.get("name_cn", ""),
             "flag": info["flag"],
-            "rank_2012": rank_2012,
+            "rank_2010": ranks[2010],
+            "rank_2012": ranks[2012],
+            "rank_2015": ranks[2015],
+            "rank_2020": ranks[2020],
+            "rank_2025": ranks[2025],
             "start_date": start_date.strftime("%Y-%m-%d"),
             "end_date": end_date.strftime("%Y-%m-%d"),
             "start_price": round(float(start_price), 2),
@@ -306,13 +337,22 @@ def generate_portfolio_chart(results):
 
 def generate_bar_chart(results):
     """生成最终价值柱状图（对数 X 轴，含 DRIP vs 不含）"""
-    names = [f'{r["flag"]} {r["name"]}' for r in results]
+    # Y 轴标签：国旗 + 英文名 + 中文名 + CAGR
+    names = []
+    for r in results:
+        cn = r.get("name_cn", "")
+        label = f'{r["flag"]} {r["name"]}'
+        if cn and cn != r["name"]:
+            label += f' ({cn})'
+        label += f'  CAGR {r["cagr_pct"]:+.1f}%'
+        names.append(label)
+    
     values = [r["final_value"] for r in results]
     values_no_drip = [r["final_no_drip"] for r in results]
     returns = [r["total_return_pct"] for r in results]
     
-    # 计算柱状图高度：36只股票需要更多空间
-    bar_height = max(750, len(results) * 28)
+    # 计算柱状图高度
+    bar_height = max(850, len(results) * 32)
     
     fig = go.Figure()
     
@@ -350,8 +390,11 @@ def generate_bar_chart(results):
         template="plotly_dark",
         height=bar_height,
         barmode='overlay',
-        yaxis=dict(autorange="reversed"),
-        margin=dict(l=200, r=120),
+        yaxis=dict(
+            autorange="reversed",
+            tickfont=dict(size=10),
+        ),
+        margin=dict(l=320, r=140),
         legend=dict(x=0.7, y=0.05)
     )
     
