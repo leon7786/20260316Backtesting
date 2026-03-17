@@ -322,9 +322,13 @@
             var sortState = {};
 
             function parseNum(text) {
-                var cleaned = text.replace(/[$,%+,\s\n]/g, '').replace(/—/g, '');
+                var cleaned = text.replace(/[$,%+,\s\n]/g, '');
+                // 「—」或空值排最后（用极大值）
+                if (cleaned === '—' || cleaned === '' || cleaned === '-') {
+                    return Infinity;
+                }
                 var num = parseFloat(cleaned);
-                return isNaN(num) ? -Infinity : num;
+                return isNaN(num) ? Infinity : num;
             }
 
             headers.forEach(function(header) {
