@@ -19,43 +19,43 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 # 股票映射
 STOCKS = {
     # --- 2025 Top 20 市值 ---
-    "NVDA": {"name": "NVIDIA", "flag": "🇺🇸"},
-    "AAPL": {"name": "Apple", "flag": "🇺🇸"},
-    "GOOGL": {"name": "Alphabet", "flag": "🇺🇸"},
-    "MSFT": {"name": "Microsoft", "flag": "🇺🇸"},
-    "AMZN": {"name": "Amazon", "flag": "🇺🇸"},
-    "META": {"name": "Meta Platforms", "flag": "🇺🇸"},
-    "TSM": {"name": "TSMC (台积电)", "flag": "🇹🇼"},
-    "AVGO": {"name": "Broadcom", "flag": "🇺🇸"},
-    "TSLA": {"name": "Tesla", "flag": "🇺🇸"},
-    "BRK-B": {"name": "Berkshire Hathaway", "flag": "🇺🇸"},
-    "WMT": {"name": "Walmart", "flag": "🇺🇸"},
-    "LLY": {"name": "Eli Lilly", "flag": "🇺🇸"},
-    "005930.KS": {"name": "Samsung (三星)", "flag": "🇰🇷"},
-    "JPM": {"name": "JPMorgan Chase", "flag": "🇺🇸"},
-    "0700.HK": {"name": "Tencent (腾讯)", "flag": "🇨🇳"},
-    "XOM": {"name": "Exxon Mobil", "flag": "🇺🇸"},
-    "V": {"name": "Visa", "flag": "🇺🇸"},
-    "JNJ": {"name": "Johnson & Johnson", "flag": "🇺🇸"},
-    "ASML": {"name": "ASML Holding", "flag": "🇳🇱"},
-    "MU": {"name": "Micron Technology", "flag": "🇺🇸"},
+    "NVDA": {"name": "NVIDIA", "name_cn": "英伟达", "flag": "🇺🇸"},
+    "AAPL": {"name": "Apple", "name_cn": "苹果", "flag": "🇺🇸"},
+    "GOOGL": {"name": "Alphabet", "name_cn": "谷歌", "flag": "🇺🇸"},
+    "MSFT": {"name": "Microsoft", "name_cn": "微软", "flag": "🇺🇸"},
+    "AMZN": {"name": "Amazon", "name_cn": "亚马逊", "flag": "🇺🇸"},
+    "META": {"name": "Meta Platforms", "name_cn": "Meta", "flag": "🇺🇸"},
+    "TSM": {"name": "TSMC", "name_cn": "台积电", "flag": "🇹🇼"},
+    "AVGO": {"name": "Broadcom", "name_cn": "博通", "flag": "🇺🇸"},
+    "TSLA": {"name": "Tesla", "name_cn": "特斯拉", "flag": "🇺🇸"},
+    "BRK-B": {"name": "Berkshire Hathaway", "name_cn": "伯克希尔", "flag": "🇺🇸"},
+    "WMT": {"name": "Walmart", "name_cn": "沃尔玛", "flag": "🇺🇸"},
+    "LLY": {"name": "Eli Lilly", "name_cn": "礼来", "flag": "🇺🇸"},
+    "005930.KS": {"name": "Samsung", "name_cn": "三星电子", "flag": "🇰🇷"},
+    "JPM": {"name": "JPMorgan Chase", "name_cn": "摩根大通", "flag": "🇺🇸"},
+    "0700.HK": {"name": "Tencent", "name_cn": "腾讯", "flag": "🇨🇳"},
+    "XOM": {"name": "Exxon Mobil", "name_cn": "埃克森美孚", "flag": "🇺🇸"},
+    "V": {"name": "Visa", "name_cn": "维萨", "flag": "🇺🇸"},
+    "JNJ": {"name": "Johnson & Johnson", "name_cn": "强生", "flag": "🇺🇸"},
+    "ASML": {"name": "ASML Holding", "name_cn": "阿斯麦", "flag": "🇳🇱"},
+    "MU": {"name": "Micron Technology", "name_cn": "美光", "flag": "🇺🇸"},
     # --- 2010 Top 20 市值（新增） ---
-    "0857.HK": {"name": "PetroChina (中石油)", "flag": "🇨🇳"},
-    "IBM": {"name": "IBM", "flag": "🇺🇸"},
-    "GE": {"name": "General Electric", "flag": "🇺🇸"},
-    "0941.HK": {"name": "China Mobile (中国移动)", "flag": "🇨🇳"},
-    "SHEL": {"name": "Royal Dutch Shell", "flag": "🇳🇱"},
-    "CVX": {"name": "Chevron", "flag": "🇺🇸"},
-    "1398.HK": {"name": "ICBC (工商银行)", "flag": "🇨🇳"},
-    "BHP": {"name": "BHP Billiton", "flag": "🇦🇺"},
-    "T": {"name": "AT&T", "flag": "🇺🇸"},
-    "PG": {"name": "Procter & Gamble", "flag": "🇺🇸"},
-    "NESN.SW": {"name": "Nestlé", "flag": "🇨🇭"},
-    "KO": {"name": "Coca-Cola", "flag": "🇺🇸"},
-    "PFE": {"name": "Pfizer", "flag": "🇺🇸"},
-    "VZ": {"name": "Verizon", "flag": "🇺🇸"},
-    "WFC": {"name": "Wells Fargo (富国银行)", "flag": "🇺🇸"},
-    "NVS": {"name": "Novartis (诺华)", "flag": "🇨🇭"},
+    "0857.HK": {"name": "PetroChina", "name_cn": "中国石油", "flag": "🇨🇳"},
+    "IBM": {"name": "IBM", "name_cn": "IBM", "flag": "🇺🇸"},
+    "GE": {"name": "General Electric", "name_cn": "通用电气", "flag": "🇺🇸"},
+    "0941.HK": {"name": "China Mobile", "name_cn": "中国移动", "flag": "🇨🇳"},
+    "SHEL": {"name": "Royal Dutch Shell", "name_cn": "壳牌", "flag": "🇳🇱"},
+    "CVX": {"name": "Chevron", "name_cn": "雪佛龙", "flag": "🇺🇸"},
+    "1398.HK": {"name": "ICBC", "name_cn": "工商银行", "flag": "🇨🇳"},
+    "BHP": {"name": "BHP Billiton", "name_cn": "必和必拓", "flag": "🇦🇺"},
+    "T": {"name": "AT&T", "name_cn": "AT&T", "flag": "🇺🇸"},
+    "PG": {"name": "Procter & Gamble", "name_cn": "宝洁", "flag": "🇺🇸"},
+    "NESN.SW": {"name": "Nestlé", "name_cn": "雀巢", "flag": "🇨🇭"},
+    "KO": {"name": "Coca-Cola", "name_cn": "可口可乐", "flag": "🇺🇸"},
+    "PFE": {"name": "Pfizer", "name_cn": "辉瑞", "flag": "🇺🇸"},
+    "VZ": {"name": "Verizon", "name_cn": "威瑞森", "flag": "🇺🇸"},
+    "WFC": {"name": "Wells Fargo", "name_cn": "富国银行", "flag": "🇺🇸"},
+    "NVS": {"name": "Novartis", "name_cn": "诺华", "flag": "🇨🇭"},
 }
 
 # 2012-05-18 附近的市值排名（亿美元，来源：历史数据）
@@ -107,8 +107,9 @@ def run_backtest(initial_investment=1000):
     包含分红再投资 (DRIP)
     若股票在该日期前未上市，则用最早可用日期
     """
-    # 统一起点：META 上市日 2012-05-18
+    # 统一起点/终点
     TARGET_START = pd.Timestamp("2012-05-18")
+    TARGET_END = pd.Timestamp("2025-12-01")
     
     results = []
     for ticker, info in STOCKS.items():
@@ -130,8 +131,8 @@ def run_backtest(initial_investment=1000):
         if len(prices) < 2:
             continue
         
-        # 统一起点：2012-05-18 或之后最近的交易日
-        valid = prices[prices.index >= TARGET_START]
+        # 统一起点 2012-05-18，终点 2025-12-01
+        valid = prices[(prices.index >= TARGET_START) & (prices.index <= TARGET_END)]
         if len(valid) < 2:
             continue
         
@@ -190,6 +191,7 @@ def run_backtest(initial_investment=1000):
         results.append({
             "ticker": ticker,
             "name": info["name"],
+            "name_cn": info.get("name_cn", ""),
             "flag": info["flag"],
             "rank_2012": rank_2012,
             "start_date": start_date.strftime("%Y-%m-%d"),
@@ -216,6 +218,7 @@ def run_backtest(initial_investment=1000):
 def generate_portfolio_chart(results):
     """生成组合总览图（含 DRIP）"""
     TARGET_START = pd.Timestamp("2012-05-18")
+    TARGET_END = pd.Timestamp("2025-12-01")
     fig = go.Figure()
     all_values = []
     
@@ -232,8 +235,8 @@ def generate_portfolio_chart(results):
                     break
         
         prices = df[close_col].dropna()
-        # 统一起点
-        valid = prices[prices.index >= TARGET_START]
+        # 统一起止点
+        valid = prices[(prices.index >= TARGET_START) & (prices.index <= TARGET_END)]
         if len(valid) >= 2:
             prices = valid
         
@@ -262,6 +265,8 @@ def generate_portfolio_chart(results):
             y=portfolio_values,
             mode='lines',
             name=f'{r["flag"]} {r["name"]}',
+            line=dict(width=1.2),
+            opacity=0.7,
             hovertemplate=f'{r["name"]}<br>日期: %{{x}}<br>价值: $%{{y:,.0f}}<extra></extra>'
         ))
         all_values.extend(portfolio_values)
@@ -277,16 +282,24 @@ def generate_portfolio_chart(results):
         log_min, log_max = 3, 7
     
     fig.update_layout(
-        title="📈 各 $10,000 投资增长曲线 · 含分红再投资 (2012-2025)",
+        title="📈 各 $10,000 投资增长曲线 · 含分红再投资 (2012.05 - 2025.12)",
         xaxis_title="日期",
         yaxis_title="投资价值 ($)",
         yaxis_type="log",
-        yaxis_range=[log_min, log_max],  # 固定 Y 轴范围
+        yaxis_range=[log_min, log_max],
         yaxis_autorange=False,
         template="plotly_dark",
-        height=600,
-        legend=dict(font=dict(size=10)),
-        hovermode="x unified"
+        height=700,
+        legend=dict(
+            font=dict(size=9),
+            bgcolor="rgba(0,0,0,0.5)",
+            bordercolor="rgba(255,255,255,0.1)",
+            borderwidth=1,
+            itemclick="toggle",
+            itemdoubleclick=False,
+        ),
+        hovermode="closest",
+        hoverlabel=dict(font_size=12),
     )
     
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)

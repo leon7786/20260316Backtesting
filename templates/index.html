@@ -152,7 +152,7 @@
 <body>
     <div class="header">
         <h1>📊 Global Top 20 — Stock Backtesting Dashboard</h1>
-        <div class="subtitle">回测起点: 2012-05-18 (META 上市日) → 2025 | 每只股票初始投入 $10,000 | 买入持有 + 分红再投资 (DRIP)</div>
+        <div class="subtitle">回测区间: 2012-05-18 → 2025-12-01 | 每只股票初始投入 $10,000 | 买入持有 + 分红再投资 (DRIP)</div>
     </div>
 
     <div class="summary-cards">
@@ -218,7 +218,7 @@
                     <td><span class="rank {{ 'top3' if loop.index <= 3 else '' }}">{{ loop.index }}</span></td>
                     <td>
                         <span class="stock-name">{{ r.flag }} {{ r.name }}</span><br>
-                        <span class="ticker">{{ r.ticker }}</span>
+                        <span class="ticker">{{ r.ticker }}{% if r.name_cn and r.name_cn != r.name %} · {{ r.name_cn }}{% endif %}</span>
                     </td>
                     <td style="text-align:center">{{ r.rank_2012 if r.rank_2012 else '—' }}</td>
                     <td>{{ r.start_date }}</td>
@@ -255,79 +255,87 @@
         Plotly.newPlot('portfolioChart', portfolioData.data, portfolioData.layout, {responsive: true});
         Plotly.newPlot('barChart', barData.data, barData.layout, {responsive: true});
 
-        // 图例点击交互：点击一个 → 隐藏其他只显示它（Y轴不变）；再点 → 恢复全部
+        // ========== 图例点击：单击隐藏其他（Y轴不变），再点恢复全部 ==========
         (function() {
             var chart = document.getElementById('portfolioChart');
             var isolated = false;
             var isolatedIndex = -1;
 
             chart.on('plotly_legendclick', function(data) {
-                var clickedIndex = data.curveNumber;
-                var totalTraces = data.fullData.length;
+                var clicked = data.curveNumber;
+                var total = data.fullData.length;
+                var i;
 
-                if (isolated && isolatedIndex === clickedIndex) {
-                    // 再次点击同一个 → 恢复全部（不改 Y 轴）
-                    var updates = [];
-                    for (var i = 0; i < totalTraces; i++) updates.push(true);
-                    Plotly.restyle('portfolioChart', {'visible': [updates]});
+                if (isolated && isolatedIndex === clicked) {
+                    // 恢复全部
+                    for (i = 0; i < total; i++) {
+                        Plotly.restyle('portfolioChart', {'visible': true}, [i]);
+                    }
                     isolated = false;
                     isolatedIndex = -1;
                 } else {
-                    // 点击某个 → 隐藏其他，只显示它（不改 Y 轴）
-                    var updates = [];
-                    for (var i = 0; i < totalTraces; i++) {
-                        updates.push(i === clickedIndex ? true : 'legendonly');
+                    // 只显示点击的那条
+                    for (i = 0; i < total; i++) {
+                        Plotly.restyle('portfolioChart', {'visible': (i === clicked) ? true : 'legendonly'}, [i]);
                     }
-                    Plotly.restyle('portfolioChart', {'visible': [updates]});
                     isolated = true;
-                    isolatedIndex = clickedIndex;
+                    isolatedIndex = clicked;
                 }
-
-                return false;
+                return false; // 阻止 Plotly 默认行为
             });
         })();
 
-        // 表格排序功能
+        // ========== 表格排序：点击降序，再点升序 ==========
         (function() {
             var table = document.querySelector('.table-section table');
             var headers = table.querySelectorAll('th.sortable');
             var tbody = table.querySelector('tbody');
+            // 记录每个表头当前排序状态: null / 'desc' / 'asc'
+            var sortState = {};
 
             function parseNum(text) {
-                // 去掉 $, %, +, 逗号，提取数字
-                var cleaned = text.replace(/[$,%+,\s]/g, '').replace(/—/g, '');
+                var cleaned = text.replace(/[$,%+,\s\n]/g, '').replace(/—/g, '');
                 var num = parseFloat(cleaned);
                 return isNaN(num) ? -Infinity : num;
             }
 
             headers.forEach(function(header) {
+                var col = header.dataset.col;
+                sortState[col] = null;
+
                 header.addEventListener('click', function() {
-                    var col = parseInt(this.dataset.col);
+                    var colIdx = parseInt(this.dataset.col);
                     var type = this.dataset.type;
-                    var isAsc = this.classList.contains('asc');
 
-                    // 清除所有排序状态
-                    headers.forEach(function(h) { h.classList.remove('asc', 'desc'); });
-
-                    // 切换排序方向：首次点击降序，再点升序
-                    var direction = isAsc ? 'desc' : 'asc';
-                    if (!this.classList.contains('asc') && !this.classList.contains('desc')) {
+                    // 确定方向：null→desc, desc→asc, asc→desc
+                    var current = sortState[colIdx];
+                    var direction;
+                    if (current === null || current === 'asc') {
                         direction = 'desc';
+                    } else {
+                        direction = 'asc';
                     }
+
+                    // 清除所有表头状态
+                    headers.forEach(function(h) {
+                        h.classList.remove('asc', 'desc');
+                        sortState[h.dataset.col] = null;
+                    });
+
+                    // 设置当前
                     this.classList.add(direction);
+                    sortState[colIdx] = direction;
 
                     var rows = Array.from(tbody.querySelectorAll('tr'));
                     rows.sort(function(a, b) {
-                        var aText = a.cells[col].textContent.trim();
-                        var bText = b.cells[col].textContent.trim();
+                        var aText = a.cells[colIdx].textContent.trim();
+                        var bText = b.cells[colIdx].textContent.trim();
                         var result;
-
                         if (type === 'num') {
                             result = parseNum(aText) - parseNum(bText);
                         } else {
                             result = aText.localeCompare(bText);
                         }
-
                         return direction === 'asc' ? result : -result;
                     });
 
