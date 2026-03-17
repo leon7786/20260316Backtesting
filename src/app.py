@@ -18,6 +18,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 
 # 股票映射
 STOCKS = {
+    # --- 2025 Top 20 市值 ---
     "NVDA": {"name": "NVIDIA", "flag": "🇺🇸"},
     "AAPL": {"name": "Apple", "flag": "🇺🇸"},
     "GOOGL": {"name": "Alphabet", "flag": "🇺🇸"},
@@ -38,6 +39,37 @@ STOCKS = {
     "JNJ": {"name": "Johnson & Johnson", "flag": "🇺🇸"},
     "ASML": {"name": "ASML Holding", "flag": "🇳🇱"},
     "MU": {"name": "Micron Technology", "flag": "🇺🇸"},
+    # --- 2010 Top 20 市值（新增） ---
+    "0857.HK": {"name": "PetroChina (中石油)", "flag": "🇨🇳"},
+    "IBM": {"name": "IBM", "flag": "🇺🇸"},
+    "GE": {"name": "General Electric", "flag": "🇺🇸"},
+    "0941.HK": {"name": "China Mobile (中国移动)", "flag": "🇨🇳"},
+    "SHEL": {"name": "Royal Dutch Shell", "flag": "🇳🇱"},
+    "CVX": {"name": "Chevron", "flag": "🇺🇸"},
+    "1398.HK": {"name": "ICBC (工商银行)", "flag": "🇨🇳"},
+    "BHP": {"name": "BHP Billiton", "flag": "🇦🇺"},
+    "T": {"name": "AT&T", "flag": "🇺🇸"},
+    "PG": {"name": "Procter & Gamble", "flag": "🇺🇸"},
+    "NESN.SW": {"name": "Nestlé", "flag": "🇨🇭"},
+    "KO": {"name": "Coca-Cola", "flag": "🇺🇸"},
+    "PFE": {"name": "Pfizer", "flag": "🇺🇸"},
+    "VZ": {"name": "Verizon", "flag": "🇺🇸"},
+    "WFC": {"name": "Wells Fargo (富国银行)", "flag": "🇺🇸"},
+    "NVS": {"name": "Novartis (诺华)", "flag": "🇨🇭"},
+}
+
+# 2012-05-18 附近的市值排名（亿美元，来源：历史数据）
+MARKET_CAP_2012 = {
+    "AAPL": 1, "XOM": 2, "0857.HK": 3, "MSFT": 4,
+    "1398.HK": 5, "IBM": 6, "WMT": 7, "SHEL": 8,
+    "GE": 9, "0941.HK": 10, "CVX": 11, "GOOGL": 12,
+    "BRK-B": 13, "T": 14, "JNJ": 15, "WFC": 16,
+    "PG": 17, "NVS": 18, "PFE": 19, "BHP": 20,
+    # 以下为 2012 时不在 Top 20 的
+    "NVDA": None, "AMZN": None, "META": None, "TSM": None,
+    "AVGO": None, "TSLA": None, "LLY": None, "005930.KS": None,
+    "JPM": None, "0700.HK": None, "V": None, "ASML": None,
+    "MU": None, "KO": None, "VZ": None, "NESN.SW": None,
 }
 
 def load_stock_data(ticker):
@@ -153,10 +185,13 @@ def run_backtest(initial_investment=1000):
         drip_bonus = final_value - final_no_drip
         drip_bonus_pct = (drip_bonus / final_no_drip * 100) if final_no_drip > 0 else 0
         
+        rank_2012 = MARKET_CAP_2012.get(ticker)
+        
         results.append({
             "ticker": ticker,
             "name": info["name"],
             "flag": info["flag"],
+            "rank_2012": rank_2012,
             "start_date": start_date.strftime("%Y-%m-%d"),
             "end_date": end_date.strftime("%Y-%m-%d"),
             "start_price": round(float(start_price), 2),
@@ -182,6 +217,7 @@ def generate_portfolio_chart(results):
     """生成组合总览图（含 DRIP）"""
     TARGET_START = pd.Timestamp("2012-05-18")
     fig = go.Figure()
+    all_values = []
     
     for r in results:
         df = load_stock_data(r["ticker"])
@@ -228,12 +264,25 @@ def generate_portfolio_chart(results):
             name=f'{r["flag"]} {r["name"]}',
             hovertemplate=f'{r["name"]}<br>日期: %{{x}}<br>价值: $%{{y:,.0f}}<extra></extra>'
         ))
+        all_values.extend(portfolio_values)
+    
+    # 计算固定 Y 轴范围（log scale）
+    import math
+    if all_values:
+        y_min = max(min(all_values), 1)
+        y_max = max(all_values)
+        log_min = math.floor(math.log10(y_min)) - 0.1
+        log_max = math.ceil(math.log10(y_max)) + 0.1
+    else:
+        log_min, log_max = 3, 7
     
     fig.update_layout(
-        title="📈 各 $10,000 投资增长曲线 · 含分红再投资 (2010-2025)",
+        title="📈 各 $10,000 投资增长曲线 · 含分红再投资 (2012-2025)",
         xaxis_title="日期",
         yaxis_title="投资价值 ($)",
         yaxis_type="log",
+        yaxis_range=[log_min, log_max],  # 固定 Y 轴范围
+        yaxis_autorange=False,
         template="plotly_dark",
         height=600,
         legend=dict(font=dict(size=10)),

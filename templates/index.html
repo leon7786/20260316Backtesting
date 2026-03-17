@@ -132,6 +132,21 @@
             font-size: 12px;
             border-top: 1px solid #1a1a2e;
         }
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .sortable:hover {
+            background: #2a2a5a;
+        }
+        .sort-icon {
+            font-size: 10px;
+            color: #555;
+            margin-left: 4px;
+        }
+        .sortable.asc .sort-icon::after { content: ' ↑'; color: #00ff88; }
+        .sortable.desc .sort-icon::after { content: ' ↓'; color: #ff4444; }
     </style>
 </head>
 <body>
@@ -182,18 +197,19 @@
         <table>
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th class="sortable" data-col="0" data-type="num"># <span class="sort-icon">⇅</span></th>
                     <th>股票</th>
-                    <th>起始日期</th>
-                    <th>买入价</th>
-                    <th>最新价</th>
-                    <th>投入</th>
-                    <th>最终价值<br><small>(含DRIP)</small></th>
-                    <th>不含分红</th>
-                    <th>分红增益</th>
-                    <th>总回报率</th>
-                    <th>年化 CAGR</th>
-                    <th>最大回撤</th>
+                    <th class="sortable" data-col="2" data-type="num">2012 市值排名 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="3" data-type="str">起始日期 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="4" data-type="num">买入价 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="5" data-type="num">最新价 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="6" data-type="num">投入 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="7" data-type="num">最终价值<br><small>(含DRIP)</small> <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="8" data-type="num">不含分红 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="9" data-type="num">分红增益 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="10" data-type="num">总回报率 <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="11" data-type="num">年化 CAGR <span class="sort-icon">⇅</span></th>
+                    <th class="sortable" data-col="12" data-type="num">最大回撤 <span class="sort-icon">⇅</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -204,6 +220,7 @@
                         <span class="stock-name">{{ r.flag }} {{ r.name }}</span><br>
                         <span class="ticker">{{ r.ticker }}</span>
                     </td>
+                    <td style="text-align:center">{{ r.rank_2012 if r.rank_2012 else '—' }}</td>
                     <td>{{ r.start_date }}</td>
                     <td>${{ "{:,.2f}".format(r.start_price) }}</td>
                     <td>${{ "{:,.2f}".format(r.end_price) }}</td>
@@ -238,10 +255,10 @@
         Plotly.newPlot('portfolioChart', portfolioData.data, portfolioData.layout, {responsive: true});
         Plotly.newPlot('barChart', barData.data, barData.layout, {responsive: true});
 
-        // 图例点击交互：点击一个 → 隐藏其他只显示它；再点 → 恢复全部
+        // 图例点击交互：点击一个 → 隐藏其他只显示它（Y轴不变）；再点 → 恢复全部
         (function() {
             var chart = document.getElementById('portfolioChart');
-            var isolated = false;  // 当前是否处于"只看一个"状态
+            var isolated = false;
             var isolatedIndex = -1;
 
             chart.on('plotly_legendclick', function(data) {
@@ -249,30 +266,73 @@
                 var totalTraces = data.fullData.length;
 
                 if (isolated && isolatedIndex === clickedIndex) {
-                    // 再次点击同一个 → 恢复全部
-                    var update = {visible: []};
-                    for (var i = 0; i < totalTraces; i++) {
-                        update.visible.push(true);
-                    }
-                    Plotly.restyle('portfolioChart', {visible: update.visible.map(function(v, i) { return true; })});
-                    // 用 restyle 数组形式
-                    var vis = [];
-                    for (var i = 0; i < totalTraces; i++) vis.push(true);
-                    Plotly.restyle('portfolioChart', {'visible': vis});
+                    // 再次点击同一个 → 恢复全部（不改 Y 轴）
+                    var updates = [];
+                    for (var i = 0; i < totalTraces; i++) updates.push(true);
+                    Plotly.restyle('portfolioChart', {'visible': [updates]});
                     isolated = false;
                     isolatedIndex = -1;
                 } else {
-                    // 点击某个 → 隐藏其他，只显示它
-                    var vis = [];
+                    // 点击某个 → 隐藏其他，只显示它（不改 Y 轴）
+                    var updates = [];
                     for (var i = 0; i < totalTraces; i++) {
-                        vis.push(i === clickedIndex ? true : 'legendonly');
+                        updates.push(i === clickedIndex ? true : 'legendonly');
                     }
-                    Plotly.restyle('portfolioChart', {'visible': vis});
+                    Plotly.restyle('portfolioChart', {'visible': [updates]});
                     isolated = true;
                     isolatedIndex = clickedIndex;
                 }
 
-                return false; // 阻止 Plotly 默认图例行为
+                return false;
+            });
+        })();
+
+        // 表格排序功能
+        (function() {
+            var table = document.querySelector('.table-section table');
+            var headers = table.querySelectorAll('th.sortable');
+            var tbody = table.querySelector('tbody');
+
+            function parseNum(text) {
+                // 去掉 $, %, +, 逗号，提取数字
+                var cleaned = text.replace(/[$,%+,\s]/g, '').replace(/—/g, '');
+                var num = parseFloat(cleaned);
+                return isNaN(num) ? -Infinity : num;
+            }
+
+            headers.forEach(function(header) {
+                header.addEventListener('click', function() {
+                    var col = parseInt(this.dataset.col);
+                    var type = this.dataset.type;
+                    var isAsc = this.classList.contains('asc');
+
+                    // 清除所有排序状态
+                    headers.forEach(function(h) { h.classList.remove('asc', 'desc'); });
+
+                    // 切换排序方向：首次点击降序，再点升序
+                    var direction = isAsc ? 'desc' : 'asc';
+                    if (!this.classList.contains('asc') && !this.classList.contains('desc')) {
+                        direction = 'desc';
+                    }
+                    this.classList.add(direction);
+
+                    var rows = Array.from(tbody.querySelectorAll('tr'));
+                    rows.sort(function(a, b) {
+                        var aText = a.cells[col].textContent.trim();
+                        var bText = b.cells[col].textContent.trim();
+                        var result;
+
+                        if (type === 'num') {
+                            result = parseNum(aText) - parseNum(bText);
+                        } else {
+                            result = aText.localeCompare(bText);
+                        }
+
+                        return direction === 'asc' ? result : -result;
+                    });
+
+                    rows.forEach(function(row) { tbody.appendChild(row); });
+                });
             });
         })();
     </script>
