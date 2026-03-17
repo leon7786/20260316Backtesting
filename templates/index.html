@@ -235,8 +235,8 @@
                 <tr>
                     <td><span class="rank {{ 'top3' if loop.index <= 3 else '' }}">{{ loop.index }}</span></td>
                     <td>
-                        <span class="stock-name">{{ r.flag }} {{ r.name }}</span>
-                        {% if r.name_cn and r.name_cn != r.name %}<span style="color:#888; font-size:12px"> {{ r.name_cn }}</span>{% endif %}<br>
+                        <span class="stock-name copy-ticker" data-ticker="{{ r.ticker }}" style="cursor:pointer" title="点击复制 {{ r.ticker }}">{{ r.flag }} {{ r.name }}</span>
+                        {% if r.name_cn and r.name_cn != r.name %}<span class="copy-ticker" data-ticker="{{ r.ticker }}" style="color:#888; font-size:12px; cursor:pointer" title="点击复制 {{ r.ticker }}"> {{ r.name_cn }}</span>{% endif %}<br>
                         <span class="ticker copy-ticker" data-ticker="{{ r.ticker }}" title="点击复制 {{ r.ticker }}" style="cursor:pointer; border:1px solid #333; border-radius:3px; padding:1px 6px; font-size:11px; display:inline-block; margin-top:2px;">📋 {{ r.ticker }}</span>
                     </td>
                     <td style="text-align:center">{{ r.rank_2010 if r.rank_2010 else '—' }}</td>
@@ -278,20 +278,82 @@
         Plotly.newPlot('portfolioChart', portfolioData.data, portfolioData.layout, {responsive: true});
         Plotly.newPlot('barChart', barData.data, barData.layout, {responsive: true});
 
-        // ========== 点击复制 Ticker ==========
+        // ========== 复制到剪贴板（兼容 HTTP） ==========
+        function copyToClipboard(text, feedbackEl) {
+            // 方法1: navigator.clipboard (HTTPS only)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopyFeedback(feedbackEl, text);
+                }).catch(function() {
+                    fallbackCopy(text, feedbackEl);
+                });
+            } else {
+                fallbackCopy(text, feedbackEl);
+            }
+        }
+        function fallbackCopy(text, feedbackEl) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); showCopyFeedback(feedbackEl, text); }
+            catch(e) { alert('复制: ' + text); }
+            document.body.removeChild(ta);
+        }
+        function showCopyFeedback(el, text) {
+            if (!el) return;
+            var orig = el.textContent;
+            el.style.borderColor = '#00ff88';
+            el.textContent = '✅ 已复制 ' + text;
+            setTimeout(function() {
+                el.style.borderColor = '#333';
+                el.textContent = orig;
+            }, 1500);
+        }
+
+        // 表格里的 ticker 复制
         document.querySelectorAll('.copy-ticker').forEach(function(el) {
             el.addEventListener('click', function() {
-                var ticker = this.dataset.ticker;
-                navigator.clipboard.writeText(ticker).then(function() {
-                    el.style.borderColor = '#00ff88';
-                    el.textContent = '✅ ' + ticker;
-                    setTimeout(function() {
-                        el.style.borderColor = '#333';
-                        el.textContent = '📋 ' + ticker;
-                    }, 1500);
-                });
+                copyToClipboard(this.dataset.ticker, this);
             });
         });
+
+        // 柱状图点击复制 ticker
+        (function() {
+            // ticker 映射表（从结果数据构建）
+            var tickerMap = {
+                {% for r in results %}
+                "{{ r.name }}": "{{ r.ticker }}",
+                {% endfor %}
+            };
+            var barChart = document.getElementById('barChart');
+            barChart.on('plotly_click', function(data) {
+                if (data.points && data.points.length > 0) {
+                    var label = data.points[0].y || data.points[0].label || '';
+                    // 从标签提取股票名（去掉 [XX] 前缀和 CAGR 后缀）
+                    for (var name in tickerMap) {
+                        if (label.indexOf(name) !== -1) {
+                            copyToClipboard(tickerMap[name], null);
+                            // 用 toast 提示
+                            showToast('已复制: ' + tickerMap[name]);
+                            break;
+                        }
+                    }
+                }
+            });
+        })();
+
+        // Toast 提示
+        function showToast(msg) {
+            var t = document.createElement('div');
+            t.textContent = msg;
+            t.style.cssText = 'position:fixed;top:20px;right:20px;background:#00ff88;color:#000;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:bold;z-index:9999;transition:opacity 0.5s';
+            document.body.appendChild(t);
+            setTimeout(function() { t.style.opacity = '0'; }, 1200);
+            setTimeout(function() { document.body.removeChild(t); }, 1800);
+        }
 
         // ========== 图例点击：透明隐藏/显示（无重渲染，Y轴不变） ==========
         (function() {
